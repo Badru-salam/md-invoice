@@ -27,32 +27,12 @@
       justify-content: space-between;
       border-bottom: 3px solid #1976d2;
       padding-bottom: 10px;
-    }
-    .header-left {
-          body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      padding: 30px;
-      margin-top: 20px;
-    }
-    .header-flex {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 3px solid #1976d2;
-      padding-bottom: 10px;
+      flex-wrap: wrap;
     }
     .header-left {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
     }
     .logo {
       width: 170px;
@@ -93,6 +73,7 @@
       display: flex;
       justify-content: space-between;
       margin-top: 40px;
+      flex-wrap: wrap;
     }
     .btn {
       border-radius: 25px;
@@ -103,17 +84,18 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .preview-mode { display: none; }
-    /* CSS khusus untuk PDF preview agar kecil dan responsif */
+
+    /* CSS untuk preview PDF */
     .pdf-preview {
-      font-size: 12px; /* Perkecil font */
-      padding: 10px; /* Kurangi padding */
-      line-height: 1.2; /* Rapatkan baris */
+      font-size: 12px;
+      padding: 10px;
+      line-height: 1.2;
     }
     .pdf-preview .header-flex {
       padding-bottom: 5px;
     }
     .pdf-preview .logo {
-      width: 80px; /* Perkecil logo */
+      width: 80px;
     }
     .pdf-preview .company-name h2 {
       font-size: 1.2rem;
@@ -131,10 +113,30 @@
       margin-top: 20px;
     }
     .text-start p {
-  margin-bottom: 4px;
-  text-align: left;
+      margin-bottom: 4px;
+      text-align: left;
+    }
+
+/* Sembunyikan header utama hanya saat mode preview aktif */
+.preview-mode-active #invoiceContainer > .header-flex {
+  display: none !important;
 }
 
+
+    /* Responsif */
+    @media (max-width: 768px) {
+      .header-flex, .invoice-footer {
+        flex-direction: column;
+        text-align: center;
+      }
+      .invoice-title {
+        text-align: center;
+        margin-top: 10px;
+      }
+      .logo {
+        width: 120px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -146,7 +148,7 @@
         <img src="logo.jpg" class="logo" alt="Logo">
         <div class="company-name">
           <h2>Konveksi Jasa Pembuatan Seragam</h2>
-          <p>Kampung babakan Rt.02 Rw.06 Kota Bekasi <br>Hp: 085716122202 / 08571644585</p>
+          <p>Kampung Babakan Rt.02 Rw.06 Kota Bekasi <br>Hp: 085716122202 / 08571644585</p>
         </div>
       </div>
       <div>
@@ -201,9 +203,9 @@
           <div>
             <h6>Pembayaran:</h6>
             <p>Bank BCA a/n <b>Darmin</b><br>No. Rek: <b>8415723942</b></p>
-          </div><br><br>>
+          </div>
           <div class="text-start">
-            <p>Bekasi,</p>
+            <p>Bekasi, <span id="tanggalNow"></span></p>
             <p>Hormat Kami,<br>Muda Collection</p>
             <img src="stamp.png" alt="Tanda Tangan" class="signature"><br>
             <label class="form-label mt-2">Nama Pemilik</label>
@@ -230,7 +232,7 @@
   </div>
 
   <script>
-    // Generate nomor invoice otomatis
+    // Nomor invoice otomatis
     function generateInvoiceNumber() {
       const date = new Date();
       const y = date.getFullYear().toString().slice(-2);
@@ -241,7 +243,7 @@
     }
     document.getElementById('autoInvoice').textContent = generateInvoiceNumber();
 
-    // Hitung total per produk & keseluruhan
+    // Hitung total
     function attachListeners() {
       document.querySelectorAll('.jumlah, .hargaSatuan').forEach(input => {
         input.addEventListener('input', calcTotal);
@@ -290,95 +292,85 @@
       attachListeners();
     });
 
-    // Preview tampilan real invoice (dengan header lengkap dan class pdf-preview)
- document.getElementById('previewBtn').addEventListener('click', function() {
-  const nomorInvoice = document.getElementById('autoInvoice').textContent;
-  const tanggal = document.getElementById('tanggal').value;
-  const kepada = document.getElementById('kepada').value;
-  const namaPemilik = document.getElementById('namaPemilik').value;
-  const totalKeseluruhan = document.getElementById('totalKeseluruhan').textContent;
+    // Preview
+    document.getElementById('previewBtn').addEventListener('click', function() {
+      const nomorInvoice = document.getElementById('autoInvoice').textContent;
+      const tanggal = document.getElementById('tanggal').value;
+      const kepada = document.getElementById('kepada').value;
+      const namaPemilik = document.getElementById('namaPemilik').value;
+      const totalKeseluruhan = document.getElementById('totalKeseluruhan').textContent;
 
-  let produkHtml = `
-  <table class="table table-bordered mt-3">
-    <thead><tr><th>No</th><th>Nama Produk</th><th>Jumlah</th><th>Harga Satuan</th><th>Total</th></tr></thead><tbody>`;
-  document.querySelectorAll('#produkBody tr').forEach(row => {
-    const no = row.querySelector('td:first-child').textContent;
-    const nama = row.querySelector('.namaProduk').value;
-    const jumlah = row.querySelector('.jumlah').value;
-    const harga = row.querySelector('.hargaSatuan').value;
-    const total = row.querySelector('.totalProduk').value;
-    produkHtml += `<tr><td>${no}</td><td>${nama}</td><td>${jumlah}</td><td>Rp ${parseInt(harga).toLocaleString('id-ID')}</td><td>Rp ${total}</td></tr>`;
-  });
-  produkHtml += `</tbody></table>`;
+      let produkHtml = `
+      <table class="table table-bordered mt-3">
+        <thead><tr><th>No</th><th>Nama Produk</th><th>Jumlah</th><th>Harga Satuan</th><th>Total</th></tr></thead><tbody>`;
+      document.querySelectorAll('#produkBody tr').forEach(row => {
+        const no = row.querySelector('td:first-child').textContent;
+        const nama = row.querySelector('.namaProduk').value;
+        const jumlah = row.querySelector('.jumlah').value;
+        const harga = row.querySelector('.hargaSatuan').value;
+        const total = row.querySelector('.totalProduk').value;
+        produkHtml += `<tr><td>${no}</td><td>${nama}</td><td>${jumlah}</td><td>Rp ${parseInt(harga).toLocaleString('id-ID')}</td><td>Rp ${total}</td></tr>`;
+      });
+      produkHtml += `</tbody></table>`;
 
-  // SATUKAN HEADER, ISI, DAN FOOTER KE DALAM previewContent
-  document.getElementById('previewContent').innerHTML = `
-  <div id="pdfArea" class="pdf-preview">
-    <div class="header-flex">
-      <div class="header-left">
-        <img src="logo.jpg" class="logo" alt="Logo">
-        <div class="company-name">
-          <h2>Konveksi Jasa Pembuatan Seragam</h2>
-          <p>Kampung babakan Rt.02 Rw.06 Kota Bekasi<br>Hp: 085716122202 / 08571644585</p>
+      document.getElementById('previewContent').innerHTML = `
+      <div id="pdfArea" class="pdf-preview">
+        <div class="header-flex">
+          <div class="header-left">
+            <img src="img/logo.jpg" class="logo" alt="Logo">
+            <div class="company-name">
+              <h2>Konveksi Jasa Pembuatan Seragam</h2>
+              <p>Kampung Babakan Rt.02 Rw.06 Kota Bekasi<br>Hp: 085716122202 / 08571644585</p>
+            </div>
+          </div>
+          <div>
+            <div class="invoice-title">INVOICE</div>
+            <div><strong>No. Invoice:</strong> ${nomorInvoice}</div>
+          </div>
         </div>
-      </div>
-      <div>
-        <div class="invoice-title">INVOICE</div>
-        <div><strong>No. Invoice:</strong> ${nomorInvoice}</div>
-      </div>
-    </div>
+        <p class="mt-3"><strong>Kepada Yth</strong><br>${kepada}<br>Di Tempat</p>
+        ${produkHtml}
+        <h5 class="total-row mt-3">Total Keseluruhan: Rp ${totalKeseluruhan}</h5>
+        <div class="invoice-footer">
+          <div>
+            <h6>Pembayaran:</h6>
+            <p>Bank BCA a/n <b>Darmin</b><br>No. Rek: <b>8415723942</b></p>
+          </div>
+          <div class="text-start">
+            <p>Bekasi, ${tanggal}</p>
+            <p>Hormat Kami,</p>
+            <p>Muda Collection</p>
+            <img src="stamp.png" class="signature" alt="Tanda Tangan">
+            <p><strong>${namaPemilik}</strong></p>
+          </div>
+        </div>
+      </div>`;
 
-    <p class="mt-3"><strong>Kepada Yth</strong><br>${kepada}<br>Di Tempat</p>
-    ${produkHtml}
-    <h5 class="total-row mt-3">Total Keseluruhan: Rp ${totalKeseluruhan}</h5>
-
-    <div class="invoice-footer">
-      <div>
-        <h6>Pembayaran:</h6>
-        <p>Bank BCA a/n <b>Darmin</b><br>No. Rek: <b>8415723942</b></p>
-      </div>
-      <div class="text-start">
-        <p>Bekasi, ${tanggal}</p>
-        <p>Hormat Kami,</p>
-        <p>Muda Collection</p>
-        <img src="stamp.png" class="signature" alt="Tanda Tangan">
-        <p><strong>${namaPemilik}</strong></p>
-      </div>
-    </div>
-  </div>`;
-
-  document.getElementById('formMode').style.display = 'none';
-  document.getElementById('previewMode').style.display = 'block';
-});
-
+      document.getElementById('formMode').style.display = 'none';
+      document.getElementById('previewMode').style.display = 'block';
+      document.body.classList.add('preview-mode-active');
+    });
 
     // Kembali ke form
     document.getElementById('backToForm').addEventListener('click', function() {
       document.getElementById('previewMode').style.display = 'none';
       document.getElementById('formMode').style.display = 'block';
+      document.body.classList.remove('preview-mode-active');
     });
 
-    // Download PDF dari preview (landscape, kecil, responsif, auto-paging)
-document.getElementById('downloadPdfFinal').addEventListener('click', function() {
-  const element = document.getElementById('pdfArea');
-  const opt = {
-    margin: 0.2,
-    filename: 'Invoice-Konveksi.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-  };
-
-  // ✅ Cek tinggi konten dan sesuaikan ukuran halaman otomatis
-  const contentHeight = element.scrollHeight;
-  if (contentHeight < 1000) {
-    opt.jsPDF.format = [210, contentHeight * 0.2645]; // konversi px ke mm
-  }
-
-  html2pdf().set(opt).from(element).save();
-});
-
+    // Download PDF
+    document.getElementById('downloadPdfFinal').addEventListener('click', function() {
+      const element = document.getElementById('pdfArea');
+      const opt = {
+        margin: 0.2,
+        filename: 'Invoice-Konveksi.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      html2pdf().set(opt).from(element).save();
+    });
   </script>
 </body>
 </html>
