@@ -231,11 +231,13 @@
           </div>
         </div>
 
-        <div class="text-center mt-4">
-          <button type="button" class="btn btn-info me-2" id="previewBtn">Preview</button>
-          <button type="submit" class="btn btn-success me-2" id="saveBtn">Save</button>
-          <button type="button" class="btn btn-secondary" id="downloadPdfBtn">Download PDF</button>
-        </div>
+<div class="text-center mt-4">
+  <button type="button" class="btn btn-success me-2" id="previewBtn">Preview</button>
+  <button type="button" class="btn btn-warning me-2" id="saveJsonBtn">Save Data (JSON)</button>
+  <label class="btn btn-info me-2 mb-0" for="uploadJsonFile">Upload File JSON</label>
+  <input type="file" id="uploadJsonFile" accept=".json" hidden>
+</div>
+
       </form>
     </div>
 
@@ -250,6 +252,68 @@
   </div>
 
   <script>
+// === SAVE JSON ===
+document.getElementById('saveJsonBtn').addEventListener('click', function () {
+  const data = {
+    nomorInvoice: document.getElementById('autoInvoice').textContent,
+    tanggal: document.getElementById('tanggal').value,
+    kepada: document.getElementById('kepada').value,
+    namaPemilik: document.getElementById('namaPemilik').value,
+    totalKeseluruhan: document.getElementById('totalKeseluruhan').textContent,
+    produk: Array.from(document.querySelectorAll('#produkBody tr')).map(row => ({
+      namaProduk: row.querySelector('.namaProduk').value,
+      jumlah: row.querySelector('.jumlah').value,
+      hargaSatuan: row.querySelector('.hargaSatuan').value
+    }))
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Invoice-${data.kepada.replace(/\s+/g, '_')}.json`;
+  a.click();
+});
+
+// === UPLOAD JSON & LOAD TO FORM ===
+document.getElementById('uploadJsonFile').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    const data = JSON.parse(event.target.result);
+
+    // Isi ulang form
+    document.getElementById('autoInvoice').textContent = data.nomorInvoice || generateInvoiceNumber();
+    document.getElementById('tanggal').value = data.tanggal || '';
+    document.getElementById('kepada').value = data.kepada || '';
+    document.getElementById('namaPemilik').value = data.namaPemilik || '';
+
+    // Bersihkan produk lama
+    const tbody = document.getElementById('produkBody');
+    tbody.innerHTML = '';
+
+    // Tambahkan produk dari file JSON
+    (data.produk || []).forEach((p, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td><input type="text" class="form-control namaProduk" value="${p.namaProduk || ''}" required></td>
+        <td><input type="number" class="form-control jumlah" value="${p.jumlah || 0}" min="1" required></td>
+        <td><input type="number" class="form-control hargaSatuan" value="${p.hargaSatuan || 0}" min="0" required></td>
+        <td><input type="text" class="form-control totalProduk" readonly></td>
+        <td><button type="button" class="btn btn-danger btn-sm removeRow">Hapus</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    attachListeners();
+    calcTotal();
+  };
+  reader.readAsText(file);
+});
+
+
     // Nomor invoice otomatis
     function generateInvoiceNumber() {
       const date = new Date();
