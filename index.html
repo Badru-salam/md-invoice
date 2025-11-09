@@ -340,7 +340,7 @@
             <p>Bekasi, ${tanggal}</p>
             <p>Hormat Kami,</p>
             <p>Muda Collection</p>
-            <img src="img/stamp.png" class="signature" alt="Tanda Tangan">
+            <img src="stamp.png" class="signature" alt="Tanda Tangan">
             <p><strong>${namaPemilik}</strong></p>
           </div>
         </div>
@@ -360,17 +360,22 @@
 
     // Download PDF
     document.getElementById('downloadPdfFinal').addEventListener('click', function() {
-      const element = document.getElementById('pdfArea');
-      const opt = {
-        margin: 0.2,
-        filename: 'Invoice-Konveksi.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-      html2pdf().set(opt).from(element).save();
-    });
+  const element = document.getElementById('pdfArea');
+  const kepada = document.getElementById('kepada').value || 'TanpaNama';
+  const fileName = `Invoice-${kepada.replace(/\s+/g, '_')}.pdf`;
+
+  const opt = {
+    margin: 0.2,
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  html2pdf().set(opt).from(element).save();
+});
+
   </script>
 </body>
 </html>
