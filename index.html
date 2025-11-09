@@ -117,6 +117,22 @@
       text-align: left;
     }
 
+#pdfArea {
+  width: 100%;
+  max-width: 210mm; /* agar proporsional di A4 */
+  margin: 0 auto;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+
 /* Sembunyikan header utama hanya saat mode preview aktif */
 .preview-mode-active #invoiceContainer > .header-flex {
   display: none !important;
@@ -137,6 +153,8 @@
         width: 120px;
       }
     }
+
+
   </style>
 </head>
 <body>
@@ -359,17 +377,39 @@
     });
 
     // Download PDF
-    document.getElementById('downloadPdfFinal').addEventListener('click', function() {
+document.getElementById('downloadPdfFinal').addEventListener('click', function() {
   const element = document.getElementById('pdfArea');
   const kepada = document.getElementById('kepada').value || 'TanpaNama';
   const fileName = `Invoice-${kepada.replace(/\s+/g, '_')}.pdf`;
 
+  // Pastikan elemen punya ukuran fix agar tidak terpotong
+  element.style.width = '210mm'; // ukuran A4
+  element.style.maxWidth = '210mm';
+  element.style.margin = '0 auto';
+  element.style.padding = '10mm';
+  element.style.backgroundColor = '#ffffff';
+  element.style.overflow = 'visible';
+  element.style.transform = 'none';
+  element.style.scale = '1';
+
+  // Pakai konfigurasi yang menangkap seluruh area HTML
   const opt = {
-    margin: 0.2,
+    margin: 0,
     filename: fileName,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: {
+      scale: 3,            // semakin besar semakin tajam dan lengkap
+      useCORS: true,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: document.body.scrollWidth,
+      windowHeight: document.body.scrollHeight
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
   };
 
